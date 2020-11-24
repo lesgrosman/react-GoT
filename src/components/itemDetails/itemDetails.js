@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import './itemDetails.css';
 import styled from 'styled-components';
 
@@ -28,59 +28,45 @@ const Field = ({item, field, label}) => {
 
 export {Field}
 
-export default class ItemDetails extends Component {
+export default function ItemDetails(props) {
 
-    state ={
-        item: {}
-    }
+    const [item, itemUpdate] = useState({})
 
-    componentDidMount() {
-        this.updateItem()
-    }
+    useEffect(() => {
+        updateItem()
+    })
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.itemId !== this.props.itemId) {
-            this.updateItem()
-        }       
-    }
-
-    updateItem() {
-        const {getData, itemId} = this.props
-        if (!itemId) {
+    function updateItem() {
+        if (!props.itemId) {
             return
         }
        
-        getData(itemId)
+        props.getData(props.itemId)
             .then(item => {
-                this.setState({item})
+                itemUpdate(item)
             })  
     }
-
-
-
-    render() {
-        if (!this.props.itemId) {
-
-            return <span className="select-error">Please select character</span>
-
-        }
-
-        const {name} = this.state.item
-        const {item} = this.state
-
-        return (
-            <Container className="rounded">
-                <CharTitle>
-                    {name}
-                </CharTitle>
-                <ul className="list-group list-group-flush">
-                    {
-                        React.Children.map(this.props.children, (child) => {
-                            return React.cloneElement(child, {item})
-                        })
-                    }
-                </ul>
-            </Container>
-        );
+    
+    if (!props.itemId) {
+        return <span className="select-error">Please select character</span>
     }
+
+    const {name} = item
+
+    return (
+        <Container className="rounded">
+            <CharTitle>
+                {name}
+            </CharTitle>
+            <ul className="list-group list-group-flush">
+                {
+                    React.Children.map(props.children, (child) => {
+                        return React.cloneElement(child, {item})
+                    })
+                }
+            </ul>
+        </Container>
+    );
+    
 }
+

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {Component} from 'react';
 import styled from 'styled-components';
 import GotService from '../../services/gotService'
 import Spinner from '../spinner/spinner'
@@ -21,46 +21,63 @@ const Property = styled.span`
     font-weight: bold;
 `;
 
-export default function RandomChar() {
+export default class RandomChar extends Component {
 
-    const [char, updateChar] = useState({})
-    const [loading, setLoad] = useState(true)
-    const [error, setError] = useState(false)
-
-    const gotService = new GotService()
-
-
-    useEffect(() => {
-        updateRandomChar()
-        let timerId = setInterval(updateRandomChar, 2000)
-
-        return () => {
-            clearInterval(timerId)
-        } 
-    }, [])
-
-    function updateRandomChar() {
-        const id = Math.round(Math.random()*140 + 25) // 25 -140
-        gotService.getCharacter(id)
-            .then(char => updateChar(char))
-            .then(() => setLoad(false))
-            .catch(() => setError(true))
+    componentDidMount() {
+        this.updateRandomChar()
+        this.timerId = setInterval(this.updateRandomChar, 2000)
     }
 
-    const errorMessage = error ? <ErrorMessage/>: null
-    const spinner = loading ? <Spinner/> : null
-    const content = !(loading || error) ? <View char={char}/> : null
+    componentWillUnmount() {
+        clearInterval(this.timerId) 
+    }
 
-    return (
-        <>               
-            <Container className="rounded">
-                {errorMessage}
-                {spinner}
-                {content}
-            </Container>          
-        </>
-    );
-    
+    gotService = new GotService()
+
+    state = {
+        char: {},
+        loading: true,
+        error: false
+    }
+
+    showRandomChar = char => {
+        this.setState({
+            char,
+            loading: false
+        })
+    }
+
+    onError = () => {
+        this.setState({
+            error: true,
+            loading: false
+        })
+    }
+
+    updateRandomChar = () => {
+        const id = Math.round(Math.random()*140 + 25) // 25 -140
+        this.gotService.getCharacter(id)
+            .then(char => this.showRandomChar(char))
+            .catch(this.onError)
+    }
+
+    render() {
+        const {char, loading, error} = this.state
+
+        const errorMessage = error ? <ErrorMessage/>: null
+        const spinner = loading ? <Spinner/> : null
+        const content = !(loading || error) ? <View char={char}/> : null
+
+        return (
+            <>               
+                <Container className="rounded">
+                    {errorMessage}
+                    {spinner}
+                    {content}
+                </Container>          
+            </>
+        );
+    }
 }
 
 const View = ({char}) => {
